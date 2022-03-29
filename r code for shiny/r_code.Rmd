@@ -1,0 +1,92 @@
+---
+title: "Untitled"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Nora Jones 
+    url: https://example.com/norajones
+    affiliation: Spacely Sprockets
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(tidyquant)
+library(readxl)
+library(timetk)
+library(plotly)
+library(ggHoriPlot)
+library(ggplot2)
+library(ggthemes)
+```
+
+
+```{r}
+# Import top 30 cryptocurrencies symbols downloaded from Yahoo Finance
+companies <- read_xlsx("data/top30coins.xlsx")
+companies
+```
+
+```{r}
+top30 <- companies%>%
+  select(Symbol)
+```
+
+data wrangling:
+
+```{r}
+from_date ="2020-1-1"
+to_date = "2021-12-31"
+period_type = "days"
+
+coins_daily <-"ETH-USD" %>%
+  tq_get(get = "stock.price",from = from_date, to = to_date) %>%
+  select(date, adjusted)%>%
+  tq_transmute(select = NULL,
+               mutate_fun = to.period,
+               period = period_type
+  )
+rmarkdown::paged_table(coins_daily)
+```
+
+
+
+```{r}
+tk_anom<- coins_daily %>%
+  plot_anomaly_diagnostics(
+  date,
+  adjusted,
+  .facet_vars = NULL,
+  .frequency = "auto",
+  .trend = "auto",
+  .alpha = 0.05,
+  .max_anomalies = 0.2,
+  .message = TRUE,
+  .facet_ncol = 3,
+  .facet_scales = "free",
+  .facet_dir = "h",
+  .line_color = "#2c3e50",
+  .line_size = 0.5,
+  .line_type = 1,
+  .line_alpha = 1,
+  .anom_color = "#e31a1c",
+  .anom_alpha = 1,
+  .anom_size = 1.5,
+  .ribbon_fill = "grey20",
+  .ribbon_alpha = 0.2,
+  .legend_show = TRUE,
+  .title = "Anomaly Diagnostics",
+  .x_lab = "",
+  .y_lab = "price",
+  .color_lab = "Anomaly",
+  .interactive = TRUE
+)
+tk_anom
+```
+
